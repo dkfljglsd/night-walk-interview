@@ -91,6 +91,12 @@ pre.out{white-space:pre-wrap;word-break:break-word;font:13px/1.6 var(--font-mono
     <span class="toast" id="toast" role="status"></span>
     <pre class="out" id="out" hidden></pre>
   </section>
+  <section class="tools" id="remote" aria-label="응답 제출" hidden>
+    <h3 style="flex-basis:100%;margin:0">응답 제출</h3>
+    <p class="hint">제출하면 팀 구글 시트에 이 인터뷰가 한 줄로 모입니다. 한 번 제출한 뒤에는 수정할 때마다 자동으로 다시 제출됩니다.</p>
+    <button class="btn pri" id="remsend" type="button">이 인터뷰 제출</button>
+    <span class="toast" id="remtoast" role="status"></span>
+  </section>
   <section class="tools" id="shared" aria-label="공유 저장" hidden>
     <h3 style="flex-basis:100%;margin:0">공유 저장 · 수집된 응답</h3>
     <p class="hint">저장하면 링크를 연 모든 진행자가 이 응답을 볼 수 있습니다. 한 번 저장한 뒤에는 수정할 때마다 자동으로 다시 저장됩니다.</p>
@@ -201,9 +207,12 @@ const newSid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,
 const fresh=()=>({sid:newSid(),saved:false,cur:0,meta:{},rec:'',notes:{},checks:{},tags:{},pick:{},fields:{}});
 try{st=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){st=fresh()}
 if(!st.sid)st.sid=newSid();
-let dbTimer=null;
+// 구글 시트로 응답을 모으는 Apps Script 웹 앱 주소 (비어 있으면 제출 기능 숨김)
+const ENDPOINT='';
+let dbTimer=null,remTimer=null;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}
-  if(st.saved&&window.__ivDb){clearTimeout(dbTimer);dbTimer=setTimeout(()=>pushDb(true),1500)}};
+  if(st.saved&&window.__ivDb){clearTimeout(dbTimer);dbTimer=setTimeout(()=>pushDb(true),1500)}
+  if(ENDPOINT&&st.sent){clearTimeout(remTimer);remTimer=setTimeout(()=>pushRemote(true),8000)}};
 const idx=id=>S.findIndex(s=>s.id===id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id);
@@ -318,6 +327,16 @@ async function pushDb(quiet){
     if(!quiet)dbToast('공유 저장했습니다');
   }catch(e){dbToast('저장하지 못했습니다')}
 }
+async function pushRemote(quiet){
+  if(!ENDPOINT)return;
+  try{
+    await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({sid:st.sid,pid:st.meta.pid||'',date:st.meta.date||'',interviewer:st.meta.interviewer||'',report:report()})});
+    if(!st.sent){st.sent=true;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+    if(!quiet){$('remtoast').textContent='제출했습니다';setTimeout(()=>{$('remtoast').textContent=''},3000)}
+  }catch(e){$('remtoast').textContent='제출하지 못했습니다. 인터넷 연결을 확인해 주세요'}
+}
+if(ENDPOINT){$('remote').hidden=false;$('remsend').onclick=()=>pushRemote(false)}
 let rows=[];
 function renderList(){
   const L=$('list');
