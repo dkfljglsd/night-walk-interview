@@ -294,12 +294,15 @@ function report(){
     const tags=(s.tags||[]).filter((t,i)=>st.tags[`${s.id}.${i}`]);
     const f=(s.fields||[]).filter(x=>(st.fields[x[0]]||'').trim()).map(x=>`  - ${x[1]}: ${st.fields[x[0]].trim()}`);
     const p=st.pick[s.id];
-    if(!note&&!tags.length&&!f.length&&p===undefined)return;
     L.push(`[${s.label}]${s.hyp?' ('+s.hyp+')':''}`);
-    if(f.length)L.push(...f);
+    L.push('질문: '+s.say);
+    const asked=[];
+    (s.follow||[]).forEach((g,gi)=>g[1].forEach((q,qi)=>{if(st.checks[`${s.id}.${gi}.${qi}`])asked.push('  · '+q)}));
+    if(asked.length){L.push('물어본 추가 질문:');L.push(...asked)}
+    (s.fields||[]).forEach(x=>L.push(`  - ${x[1]}: ${(st.fields[x[0]]||'').trim()||'(미기록)'}`));
     if(tags.length)L.push('표시: '+tags.join(', '));
     if(p!==undefined&&s.branches[p])L.push('분기: '+s.branches[p][0]);
-    if(note)L.push(note);
+    L.push('답변: '+(note||'(미기록)'));
     L.push('');
   });
   return L.join('\n').trim();
