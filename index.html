@@ -1,0 +1,350 @@
+<title>야간 보행 인터뷰 가이드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: sticky step rail on top, one question card at a time, notes beneath, branch buttons drive the flow */
+:root{
+  --bg:#eef0f3; --surface:#fbfbfc; --fg:#1b2230; --muted:#5d6676; --line:#d5d9e0;
+  --accent:#b86a00; --accent-bg:#fdecd0; --accent-fg:#ffffff; --ok:#1f7a4d; --warn:#a33a2a; --warn-bg:#f9e3df;
+  --font-body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141c; --surface:#192030; --fg:#e8ebf1; --muted:#9aa4b5; --line:#2b3447;
+  --accent:#f2b24a; --accent-bg:#3a2d12; --accent-fg:#1a1204; --ok:#6fcf9f; --warn:#f08f7e; --warn-bg:#3a1f1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141c; --surface:#192030; --fg:#e8ebf1; --muted:#9aa4b5; --line:#2b3447;
+  --accent:#f2b24a; --accent-bg:#3a2d12; --accent-fg:#1a1204; --ok:#6fcf9f; --warn:#f08f7e; --warn-bg:#3a1f1b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:760px;margin:0 auto}
+header{padding-block:24px 12px;display:flex;flex-direction:column;gap:4px}
+header .eyebrow{font:500 12px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{margin:0;font-size:24px;line-height:1.3;text-wrap:balance}
+header p{margin:0;color:var(--muted);font-size:14px}
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;border-bottom:1px solid var(--line)}
+.rail-in{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.step{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:500 13px var(--font-mono);padding:6px 10px;border-radius:6px;cursor:pointer}
+.step.done{color:var(--ok);border-color:var(--ok)}
+.step.cur{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.step.skip{opacity:.45;text-decoration:line-through}
+.step:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding-block:16px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.04em}
+input[type=text],input[type=date],textarea{width:100%;font:inherit;font-size:15px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+textarea{resize:vertical;min-height:96px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.qn{font:500 13px var(--font-mono);color:var(--accent);letter-spacing:.06em}
+.q{margin:0;font-size:20px;line-height:1.5;font-weight:700;text-wrap:balance}
+.goal{margin:0;font-size:14px;color:var(--muted)}
+.goal b{color:var(--fg);font-weight:500}
+h3{margin:0 0 6px;font:500 12px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sub{margin-top:10px;font-size:13px;color:var(--accent);font-weight:500}
+ul.chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+ul.chk label{display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:4px 0}
+ul.chk input{margin-top:6px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+ul.chk input:checked+span{color:var(--muted);text-decoration:line-through}
+.note-box{background:var(--accent-bg);border-radius:8px;padding:12px 14px;font-size:14px}
+.note-box.warn{background:var(--warn-bg)}
+.note-box strong{font-weight:700}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-size:13px;padding:5px 10px;border-radius:999px;cursor:pointer}
+.tag[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.branch{display:flex;flex-direction:column;gap:8px}
+.bbtn{display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;font:inherit;font-size:15px;color:var(--fg);background:transparent;border:1px solid var(--accent);border-radius:8px;padding:12px 14px;cursor:pointer}
+.bbtn small{font:500 12px var(--font-mono);color:var(--accent);white-space:nowrap}
+.bbtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.bbtn[aria-pressed="true"] small{color:var(--accent-fg)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.btn{font:inherit;font-size:14px;font-weight:500;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tools{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tools .hint{font-size:13px;color:var(--muted);flex-basis:100%;margin:0}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.toast{font-size:13px;color:var(--ok);font-family:var(--font-mono)}
+pre.out{white-space:pre-wrap;word-break:break-word;font:13px/1.6 var(--font-mono);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;max-height:320px;overflow:auto;margin:0;flex-basis:100%}
+.hyp{font:500 12px var(--font-mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:2px 6px;align-self:flex-start}
+.rec{display:flex;gap:6px;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){.card{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">AI 응용을 위한 UX 설계 · 사용자 인터뷰</div>
+    <h1>대전 야간 보행 · 경로 선택 인터뷰 가이드</h1>
+    <p>약 20~30분. 진행자가 화면을 보며 질문하고, 답변과 분기를 바로 기록합니다. 입력한 메모는 이 기기의 브라우저에만 저장됩니다.</p>
+  </header>
+  <div class="meta">
+    <label class="f" for="pid">참여자 번호<input type="text" id="pid" data-meta="pid" placeholder="예: P01" autocomplete="off"></label>
+    <label class="f" for="pdate">인터뷰 날짜<input type="date" id="pdate" data-meta="date"></label>
+    <label class="f" for="pint">진행자<input type="text" id="pint" data-meta="interviewer" placeholder="이름 또는 약칭" autocomplete="off"></label>
+  </div>
+  <nav class="rail" aria-label="질문 단계"><div class="rail-in" id="rail"></div></nav>
+  <main id="main" style="margin-top:16px"></main>
+  <div class="nav"><button class="btn" id="prev" type="button">← 이전</button><button class="btn pri" id="next" type="button">다음 →</button></div>
+  <section class="tools" aria-label="기록 내보내기">
+    <p class="hint">모든 메모를 한 번에 복사해 문서에 붙여 넣을 수 있습니다. 이름과 정확한 주소는 기록하지 않습니다.</p>
+    <button class="btn pri" id="copy" type="button">전체 기록 복사</button>
+    <button class="btn" id="show" type="button">기록 미리보기</button>
+    <button class="btn danger" id="reset" type="button">새 인터뷰 시작</button>
+    <span class="toast" id="toast" role="status"></span>
+    <pre class="out" id="out" hidden></pre>
+  </section>
+  <section class="tools" id="shared" aria-label="공유 저장" hidden>
+    <h3 style="flex-basis:100%;margin:0">공유 저장 · 수집된 응답</h3>
+    <p class="hint">저장하면 링크를 연 모든 진행자가 이 응답을 볼 수 있습니다. 한 번 저장한 뒤에는 수정할 때마다 자동으로 다시 저장됩니다.</p>
+    <button class="btn pri" id="dbsave" type="button">이 인터뷰 공유 저장</button>
+    <button class="btn" id="dbcopy" type="button">수집된 응답 전체 복사</button>
+    <span class="toast" id="dbtoast" role="status"></span>
+    <div id="list" style="flex-basis:100%;display:flex;flex-direction:column;gap:8px"><span class="goal">저장된 응답이 아직 없습니다.</span></div>
+  </section>
+</div>
+
+<script>
+const S = [
+ {id:'consent',label:'동의',title:'시작 전 안내와 동의',
+  say:'이번 인터뷰는 「AI 응용을 위한 UX 설계」 수업에서 대전의 야간 보행과 경로 선택 경험을 알아보기 위해 진행합니다. 약 20~30분이 걸립니다. 이름과 정확한 주소는 기록하지 않고, 답변은 참여자 번호로 정리해 수업 분석과 발표에 사용합니다. 답하기 어려운 질문은 건너뛰거나 언제든 중단하셔도 됩니다. 참여에 동의하시나요?',
+  recording:true,
+  branches:[['참여 동의','q1'],['미동의','end']]},
+ {id:'q1',label:'Q1',title:'Q1',
+  say:'최근 4주 동안 대전에서 해가 진 뒤 10분 이상 걸어서 이동한 경험이 있나요?',
+  goal:'조사 대상 확인',
+  follow:[['',['가장 최근에는 언제쯤이었나요?']]],
+  branches:[['해당 경험 확인됨','info'],['없음 / 확인하기 어려움','end']]},
+ {id:'info',label:'기본정보',title:'참여자 기본정보',
+  say:'(핵심 10문항에 포함하지 않음) 몇 가지만 짧게 확인하겠습니다. 답하기 어려운 항목은 건너뛰어도 됩니다.',
+  caution:'약 1~2분. 이미 말한 내용은 다시 묻지 않는다. 정확한 생년월일, 직업·직장명·연락처, 상세 주소는 묻지 않는다.',
+  fields:[
+   ['age','연령대','“연령대를 알려주실 수 있나요?”','10대 / 20대 / 30대 / 40대 / 50대 / 60대 이상 / 응답 원치 않음'],
+   ['freq','야간 보행 빈도','“최근 4주 동안 해가 진 뒤 10분 이상 걸은 날은 일주일에 대략 며칠인가요?”','주 0~7일로 기록. 주 1일 미만이면 4주 총 일수, 기억나지 않음은 구분'],
+   ['fam','대전 생활권 익숙함','“대전에서 거주하거나 통학·통근한 기간은 어느 정도인가요? 주로 다니는 지역은 얼마나 익숙한가요?”','대략적 기간과 익숙함. 방문자도 가능'],
+   ['wayfind','평소 도보 길찾기 방식','“평소 걸어갈 길은 주로 어떻게 찾나요?”','자유 응답 먼저. 필요하면 지도 앱 / 기억 / 다른 사람의 안내 / 기타로 정리, 복수 가능'],
+   ['gender','성별 (선택)','분석 목적을 정한 경우에만 선택 응답으로 확인','기본 수집 항목 아님']
+  ],
+  after:'평소 경험은 기본정보에, 해당 이동의 목적·동행·시간대·경로 익숙함은 Q2에 기록한다. 참여자 번호로 연결하며 연령이나 생활 기간만으로 응답의 원인을 단정하지 않는다.',
+  branches:[['Q2로 이동','q2']]},
+ {id:'q2',label:'Q2',title:'Q2',
+  say:'그중 가장 최근의 이동을 출발 전부터 도착할 때까지 이야기해 주세요.',
+  goal:'실제 상황과 경로 익숙함 확인',
+  follow:[['',['어떤 목적으로, 몇 시쯤, 누구와 함께 이동했나요?','처음 걷는 경로였나요, 몇 번 걸어봤나요, 자주 다니나요?','걸어갈 경로는 언제 정했나요?']]],
+  caution:'정확한 주소 대신 ‘정류장에서 집까지’처럼 상황을 기록한다. 익숙한 길이어도 계속 진행한다.',
+  tags:['E1로 표시'],
+  branches:[['Q3으로','q3']]},
+ {id:'q3',label:'Q3',title:'Q3',
+  say:'그 경로는 어떻게 정했고, 선택한 이유는 무엇이었나요?',
+  goal:'참여자가 먼저 말하는 선택 기준 확인',
+  follow:[['',['평소 다니던 길이라면 처음 그 길을 이용하게 된 이유가 기억나나요?','다른 경로도 생각했나요? 있었다면 선택하거나 제외한 이유는 무엇인가요?','다른 사람이 정한 길이라면 본인은 무엇을 알고 따라갔나요?']]],
+  caution:'밝기·시간·안전 등의 이유를 먼저 제시하지 않는다. 타인이 선택한 경우 모르는 이유를 추측하게 하지 않는다.',
+  tags:['밝기를 먼저 언급','시간을 먼저 언급','안전을 먼저 언급'],
+  branches:[['본인이 선택함','q4'],['타인이 선택함','q4']]},
+ {id:'q4',label:'Q4',title:'Q4',hyp:'가설 ①·③ 배경',
+  say:'출발 전에 그 길에 관해 확인한 정보가 있었나요? 어떻게 알아봤나요?',
+  follow:[['',['무엇을 알고 싶어서 찾아봤나요?','어떤 앱·화면·사람·기억을 이용했는지 순서대로 설명해 주세요.','알고 싶었지만 얻지 못한 정보가 있었나요?','따로 찾아보지 않았다면 무엇을 이미 알고 있었나요?']]],
+  caution:'밝기와 안전시설을 먼저 언급하지 않는다. ‘검색하지 않음’을 ‘정보를 활용하지 않음’으로 기록하지 않는다.',
+  tags:['밝기를 먼저 언급'],
+  branches:[['찾아봄','q5'],['별도 검색 없음 (기억·현장 판단)','q5']]},
+ {id:'q5',label:'Q5',title:'Q5',hyp:'가설 ①',
+  say:'이제 밝기에 관해 여쭤볼게요. 그때 출발 전에 길의 밝기를 생각하거나 예상했나요?',
+  goal:'밝기 정보의 필요성과 판단 근거',
+  follow:[['예상했다면',['무엇을 근거로 판단했나요?','그 정보로 길 전체나 어두운 구간을 어느 정도 알 수 있었나요?','판단하기 어려웠다면 구체적으로 무엇이 부족하거나 이해하기 어려웠나요?']],['예상하지 않았다면',['그 이유는 무엇인가요?']]],
+  caution:'난이도를 억지로 평가하게 하지 않는다.',
+  record:'밝기가 Q3·Q4에서 먼저 언급됐는지, Q5에서 질문한 뒤 나왔는지 구분한다.',
+  tags:['Q3·Q4에서 먼저 언급','Q5 질문 후 언급'],
+  branches:[['예상함 → 근거와 어려움 확인','q6'],['예상하지 않음 → 이유만 확인','q6']]},
+ {id:'q6',label:'Q6',title:'Q6',hyp:'가설 ①',
+  say:'실제로 걸었을 때 길의 밝기는 어땠나요? 예상했다면 같거나 달랐던 점이 있었나요?',
+  goal:'판단 근거가 실제 경험에 도움이 됐는지',
+  follow:[['',['예상과 달랐다면 어떤 구간이나 상황이었나요?','그 차이 때문에 실제로 한 행동이 있었나요?','예상과 비슷했다면 어떤 정보나 경험이 도움이 됐나요?','차이가 난 이유 중 직접 확인한 것과 추측한 것은 무엇인가요?']]],
+  record:'직접 본 사실과 밝기 차이의 원인에 관한 추측을 구분한다. 예상이 없었다면 비교는 ‘해당 없음’.',
+  tags:['예상과 같음','예상과 다름','비교 해당 없음'],
+  branches:[['Q7로','q7']]},
+ {id:'q7',label:'Q7',title:'Q7',hyp:'가설 ②',
+  say:'최근 4주 동안 밤에 걸을 길을 정하면서 두 경로 사이에서 고민하거나, 다른 경로를 고려한 경험이 있나요?',
+  goal:'실제 비교 경험과 비교 이유',
+  follow:[['',['가장 최근에는 어떤 상황이었나요?','다른 길을 생각한 계기는 무엇이었나요?','각 경로의 좋은 점과 아쉬운 점은 무엇이었나요?']]],
+  caution:'밝기 때문에 비교했다고 가정하지 않는다. 계단·거리 등 다른 이유도 기록한다.',
+  tags:['E2로 표시'],
+  branches:[['E1에서 이미 설명한 비교 경험 → 같은 사례','q8'],['별도 경험 있음 → 상황·익숙함 확인, E2','q8'],['없음 / 기억나지 않음 → Q8 해당 없음','q9']]},
+ {id:'q8',label:'Q8',title:'Q8',hyp:'가설 ②',
+  say:'그때 경로들의 차이를 어떻게 알아보고, 최종적으로 어느 경로를 선택했나요?',
+  goal:'밝기·시간 비교에서 막힌 지점',
+  follow:[['공통',['경로별 소요시간이나 시간 차이를 알고 있었나요? 어떻게 확인했나요?','비교에 필요한 정보를 찾거나 이해하는 데 어려움이 있었나요?','어려움이 있었다면 어떻게 해결했나요? 해결하지 못했다면 어떻게 결정했나요?']],
+          ['밝기를 고려했다고 답한 경우에만',['두 경로의 밝기는 무엇을 보고 비교했나요?','밝기와 시간 차이를 함께 알고 결정했나요?','한쪽을 선택하면서 얻은 점과 감수한 점은 무엇이었나요?','시간 차이를 알고 있었다면 어느 정도였나요?']]],
+  record:'시간은 ‘확인한 값 / 참여자 추정 / 모름’으로 구분한다. 더 밝은 길이 더 오래 걸렸다고 미리 가정하지 않는다.',
+  tags:['시간: 확인한 값','시간: 참여자 추정','시간: 모름','가설 ②의 직접 경험 아님'],
+  branches:[['밝기와 시간을 함께 고려 → 비교·절충 확인','q9'],['다른 기준으로 비교 → 실제 기준 확인','q9']]},
+ {id:'q9',label:'Q9',title:'Q9',hyp:'가설 ③',
+  say:'최근 4주 동안 밤에 걸을 경로를 정하면서, 경로 안내와 함께 주변 안전정보를 찾아본 경험이 있나요?',
+  goal:'두 정보를 함께 확인할 필요가 실제로 있었는지',
+  follow:[['',['어떤 정보가 궁금했고, 왜 필요했나요?','어디에서 확인했나요?','찾아보지 않았다면 필요하지 않았던 이유나 찾아보지 못한 이유가 있었나요?']]],
+  caution:'말뜻을 물을 때만 예시 제시: CCTV·비상벨·지구대 등의 위치.',
+  record:'E1·E2와 다른 경험이면 E3. 경험이 없으면 해당 참여자에게서 가설 ③은 ‘미확인’.',
+  tags:['E3로 표시','가설 ③ 미확인'],
+  branches:[['찾아본 경험 있음','q10'],['찾아보려 했지만 정보를 얻지 못함 (시도 사례)','q10'],['찾아보지 않음 / 기억나지 않음 → 이유 듣고 종료','end']]},
+ {id:'q10',label:'Q10',title:'Q10',hyp:'가설 ③',
+  say:'그 정보를 찾기 시작해서 걸어갈 경로를 결정하기까지의 과정을 순서대로 설명해 주세요.',
+  goal:'정보 분산과 실제 번거로움의 연결',
+  follow:[['',['어떤 화면이나 서비스를 이용했고, 옮겨 봤다면 왜 옮겼나요?','찾은 시설이나 정보가 내 경로의 어느 부분에 해당하는지 어떻게 확인했나요?','찾은 정보로 무엇을 판단할 수 있다고 생각했나요?','찾거나 연결하는 과정에서 막힌 부분이 있었나요?','그 때문에 다시 검색하거나, 확인을 포기하거나, 경로를 바꾼 일이 있었나요?','어려움이 없었다면 어떤 점 때문에 충분했나요?']]],
+  caution:'분기 확인: 여러 화면 → 어떤 어려움과 추가 행동이 생겼는지 / 한 화면 → 찾고 연결하기 쉬웠는지 / 정보 획득 실패 → 찾기에서 막혔는지, 찾았지만 해석하지 못했는지 구분.',
+  tags:['여러 화면 이용','한 화면 이용','정보 획득 실패: 찾기에서 막힘','정보 획득 실패: 해석 못 함'],
+  branches:[['요약 확인 후 종료','end']]},
+ {id:'end',label:'종료',title:'종료 안내',
+  say:'“제가 이해한 내용은 …인데 맞나요?” 라고 요약해 확인한 뒤 감사 인사를 한다. Q9에서 종료하는 경우에도 같은 방식으로 마무리한다.',
+  follow:[['마무리 체크',['핵심 내용을 요약해 참여자에게 확인받았다','수정할 내용이 있으면 반영했다','참여에 감사 인사를 했다']]],
+  branches:[]}
+];
+const FLOW='동의 → Q1 대상 확인 → Q2~Q6 최근 이동 E1 → Q7 비교 경험 → 경험자만 Q8 → Q9 정보 확인 경험 → 경험·시도자만 Q10 → 종료';
+const KEY='nightwalk-interview-v1';
+let st;
+const newSid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const fresh=()=>({sid:newSid(),saved:false,cur:0,meta:{},rec:'',notes:{},checks:{},tags:{},pick:{},fields:{}});
+try{st=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){st=fresh()}
+if(!st.sid)st.sid=newSid();
+let dbTimer=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}
+  if(st.saved&&window.__ivDb){clearTimeout(dbTimer);dbTimer=setTimeout(()=>pushDb(true),1500)}};
+const idx=id=>S.findIndex(s=>s.id===id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+
+function skipped(i){ // steps jumped over by a chosen branch
+  const out=new Set();
+  S.forEach((s,k)=>{const p=st.pick[s.id];if(p!==undefined&&s.branches[p]){const to=idx(s.branches[p][1]);for(let j=k+1;j<to;j++)out.add(j)}});
+  return out;
+}
+function rail(){
+  const sk=skipped();
+  $('rail').innerHTML=S.map((s,i)=>`<button type="button" class="step ${i===st.cur?'cur':''} ${st.pick[s.id]!==undefined&&i!==st.cur?'done':''} ${sk.has(i)?'skip':''}" data-go="${i}" ${i===st.cur?'aria-current="step"':''}>${esc(s.label)}</button>`).join('');
+  const c=document.querySelector('.step.cur');if(c&&c.scrollIntoView)c.scrollIntoView({inline:'center',block:'nearest'});
+}
+function render(){
+  const s=S[st.cur];let h='<div class="card">';
+  h+=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="qn">${esc(s.title)}</span>${s.hyp?`<span class="hyp">${esc(s.hyp)}</span>`:''}</div>`;
+  h+=`<p class="q">${esc(s.say)}</p>`;
+  if(s.goal)h+=`<p class="goal"><b>목적</b> ${esc(s.goal)}</p>`;
+  if(s.recording){
+    h+=`<div><h3>녹음 동의</h3><p class="goal" style="margin:0 0 8px">“기록을 위해 녹음해도 될까요?” 별도로 확인합니다. 미동의 시 녹음 없이 메모로 진행합니다.</p><div class="rec"><button type="button" class="tag" data-rec="동의" aria-pressed="${st.rec==='동의'}">녹음 동의</button><button type="button" class="tag" data-rec="미동의 (메모로 진행)" aria-pressed="${st.rec==='미동의 (메모로 진행)'}">미동의 · 메모로 진행</button></div></div>`;
+  }
+  if(s.follow){
+    h+='<div><h3>추가 질문</h3>';
+    s.follow.forEach((g,gi)=>{
+      if(g[0])h+=`<div class="sub">${esc(g[0])}</div>`;
+      h+='<ul class="chk">'+g[1].map((q,qi)=>{const k=`${s.id}.${gi}.${qi}`;return `<li><label><input type="checkbox" data-chk="${k}" ${st.checks[k]?'checked':''}><span>${esc(q)}</span></label></li>`}).join('')+'</ul>';
+    });
+    h+='</div>';
+  }
+  if(s.fields){
+    h+='<div style="display:flex;flex-direction:column;gap:14px">';
+    s.fields.forEach(f=>{h+=`<div><label for="f_${f[0]}" style="font-weight:700">${esc(f[1])}</label><p class="goal" style="margin:2px 0 6px">${esc(f[2])}</p><input type="text" id="f_${f[0]}" data-field="${f[0]}" value="${esc(st.fields[f[0]]||'')}" placeholder="${esc(f[3])}" autocomplete="off"></div>`});
+    h+='</div>';
+    if(s.after)h+=`<div class="note-box"><strong>구분</strong> ${esc(s.after)}</div>`;
+  }
+  if(s.caution)h+=`<div class="note-box warn"><strong>주의</strong> ${esc(s.caution)}</div>`;
+  if(s.record)h+=`<div class="note-box"><strong>기록</strong> ${esc(s.record)}</div>`;
+  if(s.tags){h+='<div><h3>기록 표시</h3><div class="tags">'+s.tags.map((t,i)=>{const k=`${s.id}.${i}`;return `<button type="button" class="tag" data-tag="${k}" aria-pressed="${!!st.tags[k]}">${esc(t)}</button>`}).join('')+'</div></div>'}
+  if(!s.fields||true)h+=`<div><h3>답변 메모</h3><label for="note" class="f" style="font-family:var(--font-body)"><textarea id="note" data-note="${s.id}" placeholder="직접 한 말, 인상적인 표현, 직접 본 사실과 추측 구분 등">${esc(st.notes[s.id]||'')}</textarea></label></div>`;
+  if(s.branches.length){
+    h+='<div><h3>다음 단계 선택</h3><div class="branch">'+s.branches.map((b,i)=>`<button type="button" class="bbtn" data-br="${i}" aria-pressed="${st.pick[s.id]===i}"><span>${esc(b[0])}</span><small>→ ${esc(S[idx(b[1])].label)}</small></button>`).join('')+'</div></div>';
+  }
+  h+='</div>';
+  $('main').innerHTML=h;
+  $('prev').disabled=st.cur===0;$('next').textContent=st.cur===S.length-1?'처음으로':'다음 →';
+  rail();
+}
+function go(i){st.cur=Math.max(0,Math.min(S.length-1,i));save();render();window.scrollTo({top:document.querySelector('.rail').offsetTop-8})}
+function nextIdx(){const s=S[st.cur],p=st.pick[s.id];return p!==undefined&&s.branches[p]?idx(s.branches[p][1]):st.cur+1}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-go],[data-rec],[data-tag],[data-br]');if(!t)return;
+  const s=S[st.cur];
+  if(t.dataset.go!==undefined)go(+t.dataset.go);
+  else if(t.dataset.rec){st.rec=st.rec===t.dataset.rec?'':t.dataset.rec;save();render()}
+  else if(t.dataset.tag){const k=t.dataset.tag;st.tags[k]=!st.tags[k];save();t.setAttribute('aria-pressed',!!st.tags[k])}
+  else if(t.dataset.br!==undefined){st.pick[s.id]=+t.dataset.br;go(idx(s.branches[+t.dataset.br][1]))}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.meta){st.meta[t.dataset.meta]=t.value}
+  else if(t.dataset.note){st.notes[t.dataset.note]=t.value}
+  else if(t.dataset.field){st.fields[t.dataset.field]=t.value}
+  else if(t.dataset.chk){st.checks[t.dataset.chk]=t.checked}
+  else return;
+  save();
+});
+$('prev').onclick=()=>go(st.cur-1);
+$('next').onclick=()=>st.cur===S.length-1?go(0):go(nextIdx());
+
+function report(){
+  const L=[];
+  L.push('야간 보행 인터뷰 기록');
+  L.push(`참여자: ${st.meta.pid||'-'} / 날짜: ${st.meta.date||'-'} / 진행자: ${st.meta.interviewer||'-'} / 녹음: ${st.rec||'-'}`);
+  L.push('');
+  S.forEach(s=>{
+    const note=(st.notes[s.id]||'').trim();
+    const tags=(s.tags||[]).filter((t,i)=>st.tags[`${s.id}.${i}`]);
+    const f=(s.fields||[]).filter(x=>(st.fields[x[0]]||'').trim()).map(x=>`  - ${x[1]}: ${st.fields[x[0]].trim()}`);
+    const p=st.pick[s.id];
+    if(!note&&!tags.length&&!f.length&&p===undefined)return;
+    L.push(`[${s.label}]${s.hyp?' ('+s.hyp+')':''}`);
+    if(f.length)L.push(...f);
+    if(tags.length)L.push('표시: '+tags.join(', '));
+    if(p!==undefined&&s.branches[p])L.push('분기: '+s.branches[p][0]);
+    if(note)L.push(note);
+    L.push('');
+  });
+  return L.join('\n').trim();
+}
+function toast(m){$('toast').textContent=m;setTimeout(()=>{$('toast').textContent=''},2500)}
+$('show').onclick=()=>{const o=$('out');o.textContent=report();o.hidden=!o.hidden};
+$('copy').onclick=async()=>{
+  const txt=report();
+  try{await navigator.clipboard.writeText(txt);toast('복사했습니다')}
+  catch(e){const o=$('out');o.textContent=txt;o.hidden=false;const r=document.createRange();r.selectNodeContents(o);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('직접 복사해 주세요')}
+};
+let armed=false;
+$('reset').onclick=()=>{
+  const b=$('reset');
+  if(!armed){armed=true;b.textContent='정말 지우기 (다시 누르기)';setTimeout(()=>{armed=false;b.textContent='새 인터뷰 시작'},4000);return}
+  st=fresh();save();armed=false;b.textContent='새 인터뷰 시작';
+  document.querySelectorAll('[data-meta]').forEach(i=>i.value='');$('out').hidden=true;render();window.scrollTo({top:0});
+};
+function dbToast(m){$('dbtoast').textContent=m;setTimeout(()=>{$('dbtoast').textContent=''},3000)}
+async function pushDb(quiet){
+  const db=window.__ivDb;if(!db)return;
+  try{
+    await db.collection('interviews').doc(st.sid).set({pid:st.meta.pid||'',date:st.meta.date||'',interviewer:st.meta.interviewer||'',state:JSON.stringify(st),report:report(),updatedAt:Date.now()});
+    if(!st.saved){st.saved=true;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+    if(!quiet)dbToast('공유 저장했습니다');
+  }catch(e){dbToast('저장하지 못했습니다')}
+}
+let rows=[];
+function renderList(){
+  const L=$('list');
+  if(!rows.length){L.innerHTML='<span class="goal">저장된 응답이 아직 없습니다.</span>';return}
+  L.innerHTML=rows.map(r=>`<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)"><span style="min-width:0"><b>${esc(r.pid||'번호 없음')}</b> <span class="goal">${esc(r.date||'')} ${esc(r.interviewer||'')}${r.id===st.sid?' · 현재 편집 중':''}</span></span><button class="btn" type="button" data-load="${esc(r.id)}">불러오기</button></div>`).join('');
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-load]');if(!b)return;
+  const r=rows.find(x=>x.id===b.dataset.load);if(!r)return;
+  try{st=JSON.parse(r.state);st.saved=true;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(x){}
+    document.querySelectorAll('[data-meta]').forEach(i=>{i.value=st.meta[i.dataset.meta]||''});render();renderList();window.scrollTo({top:0})}catch(x){dbToast('불러오지 못했습니다')}
+});
+$('dbsave').onclick=()=>pushDb(false);
+$('dbcopy').onclick=async()=>{
+  const txt=rows.map(r=>r.report).join('\n\n==========\n\n');
+  try{await navigator.clipboard.writeText(txt);dbToast('복사했습니다')}
+  catch(e){const o=$('out');o.textContent=txt;o.hidden=false;dbToast('위 기록을 직접 복사해 주세요')}
+};
+document.querySelectorAll('[data-meta]').forEach(i=>{i.value=st.meta[i.dataset.meta]||''});
+render();
+(async()=>{
+  try{
+    const db=window.claude&&await window.claude.use('db');if(!db)return;
+    window.__ivDb=db;$('shared').hidden=false;
+    db.collection('interviews').onSnapshot(snap=>{
+      rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));renderList();
+    },()=>{});
+  }catch(e){}
+})();
+</script>
